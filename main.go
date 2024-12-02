@@ -10,7 +10,7 @@ import (
 type Solver func(string) int
 
 var solverMap = map[string]map[string]Solver{
-	"day01": {"part1": day01.SolvePart1},
+	"day01": {"part1": day01.SolvePart1, "part2": day01.SolvePart2},
 }
 
 func main() {
