@@ -5,12 +5,14 @@ import (
 	"os"
 	"strings"
 	"zakini/advent-of-code-2024/day01"
+	"zakini/advent-of-code-2024/day02"
 )
 
 type Solver func(string) int
 
 var solverMap = map[string]map[string]Solver{
 	"day01": {"part1": day01.SolvePart1, "part2": day01.SolvePart2},
+	"day02": {"part1": day02.SolvePart1},
 }
 
 func main() {
