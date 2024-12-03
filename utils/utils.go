@@ -2,8 +2,19 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 )
+
+type Solver func(string) int
+
+func LoadInputFile(filePath string) string {
+	fileData, err := os.ReadFile(filePath)
+	AssertNoError(err, fmt.Sprintf("Could not read input file: %s", filePath))
+
+	return strings.TrimSpace(string(fileData))
+}
 
 func Assert(condition bool, message string) {
 	if !condition {
