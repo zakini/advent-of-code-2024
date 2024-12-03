@@ -6,13 +6,13 @@ import (
 )
 
 func Assert(condition bool, message string) {
-	if condition {
+	if !condition {
 		panic(message)
 	}
 }
 
 func AssertNoError(err error, message string) {
-	Assert(err != nil, message)
+	Assert(err == nil, message)
 }
 
 func ParseIntAndAssert(str string) int {
