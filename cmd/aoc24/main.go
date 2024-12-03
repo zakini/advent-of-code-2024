@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
-	"zakini/advent-of-code-2024/day01"
-	"zakini/advent-of-code-2024/day02"
-	"zakini/advent-of-code-2024/day03"
-	"zakini/advent-of-code-2024/utils"
+	"zakini/advent-of-code-2024/internal/day01"
+	"zakini/advent-of-code-2024/internal/day02"
+	"zakini/advent-of-code-2024/internal/day03"
+	"zakini/advent-of-code-2024/internal/utils"
 )
 
 var solverMap = map[string]map[string]utils.Solver{

@@ -2,7 +2,7 @@ package day02
 
 import (
 	"strings"
-	"zakini/advent-of-code-2024/utils"
+	"zakini/advent-of-code-2024/internal/utils"
 )
 
 const minDiff = 1

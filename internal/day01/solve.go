@@ -3,7 +3,7 @@ package day01
 import (
 	"slices"
 	"strings"
-	"zakini/advent-of-code-2024/utils"
+	"zakini/advent-of-code-2024/internal/utils"
 )
 
 func SolvePart1(input string) int {
