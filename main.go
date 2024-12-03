@@ -14,7 +14,7 @@ type Solver func(string) int
 var solverMap = map[string]map[string]Solver{
 	"day01": {"part1": day01.SolvePart1, "part2": day01.SolvePart2},
 	"day02": {"part1": day02.SolvePart1},
-	"day03": {"part1": day03.SolvePart1},
+	"day03": {"part1": day03.SolvePart1, "part2": day03.SolvePart2},
 }
 
 func main() {
