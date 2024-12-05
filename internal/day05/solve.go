@@ -25,6 +25,20 @@ func SolvePart1(input string) int {
 	return result
 }
 
+func SolvePart2(input string) int {
+	rules, pageLists := parseInput(input)
+
+	result := 0
+	for _, pageList := range pageLists {
+		if !pageListValid(rules, pageList) {
+			pageList = fixInvalidPageList(rules, pageList)
+			result += pageList[(len(pageList)-1)/2]
+		}
+	}
+
+	return result
+}
+
 func parseInput(input string) ([]pageOrderingRule, [][]int) {
 	lines := strings.Split(input, "\n")
 
@@ -72,6 +86,22 @@ func pageListValid(rules []pageOrderingRule, pageList []int) bool {
 	}
 
 	return true
+}
+
+func fixInvalidPageList(rules []pageOrderingRule, pageList []int) []int {
+	slices.SortFunc(pageList, func(a int, b int) int {
+		for _, rule := range rules {
+			if rule.before == a && rule.after == b {
+				return -1
+			} else if rule.before == b && rule.after == a {
+				return 1
+			}
+		}
+
+		panic(fmt.Sprintf("Failed to find rule for page list: %v", pageList))
+	})
+
+	return pageList
 }
 
 func unique(s []int) []int {
