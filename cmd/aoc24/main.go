@@ -7,6 +7,7 @@ import (
 	"zakini/advent-of-code-2024/internal/day02"
 	"zakini/advent-of-code-2024/internal/day03"
 	"zakini/advent-of-code-2024/internal/day04"
+	"zakini/advent-of-code-2024/internal/day05"
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
@@ -15,6 +16,7 @@ var solverMap = map[string]map[string]utils.Solver{
 	"day02": {"part1": day02.SolvePart1, "part2": day02.SolvePart2},
 	"day03": {"part1": day03.SolvePart1, "part2": day03.SolvePart2},
 	"day04": {"part1": day04.SolvePart1, "part2": day04.SolvePart2},
+	"day05": {"part1": day05.SolvePart1},
 }
 
 func main() {
