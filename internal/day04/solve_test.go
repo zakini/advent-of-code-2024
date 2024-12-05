@@ -9,3 +9,7 @@ import (
 func TestSolvePart1WithExample(t *testing.T) {
 	utils.TestAgainstExample(t, day04.SolvePart1, "example1.txt", 18)
 }
+
+func TestSolvePart2WithExample(t *testing.T) {
+	utils.TestAgainstExample(t, day04.SolvePart2, "example1.txt", 9)
+}
