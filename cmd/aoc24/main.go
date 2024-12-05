@@ -12,7 +12,7 @@ import (
 
 var solverMap = map[string]map[string]utils.Solver{
 	"day01": {"part1": day01.SolvePart1, "part2": day01.SolvePart2},
-	"day02": {"part1": day02.SolvePart1},
+	"day02": {"part1": day02.SolvePart1, "part2": day02.SolvePart2},
 	"day03": {"part1": day03.SolvePart1, "part2": day03.SolvePart2},
 	"day04": {"part1": day04.SolvePart1, "part2": day04.SolvePart2},
 }

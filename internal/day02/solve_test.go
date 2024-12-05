@@ -11,5 +11,5 @@ func TestSolvePart1WithExample(t *testing.T) {
 }
 
 func TestSolvePart2WithExample(t *testing.T) {
-	t.SkipNow()
+	utils.TestAgainstExample(t, day02.SolvePart2, "example1.txt", 4)
 }
