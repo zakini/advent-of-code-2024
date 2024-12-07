@@ -2,6 +2,7 @@ package day04
 
 import (
 	"strings"
+	"zakini/advent-of-code-2024/internal/utils"
 )
 
 type point struct {
@@ -45,24 +46,16 @@ func parseInput(input string) [][]string {
 	lines := strings.Split(input, "\n")
 	chars := make([][]string, len(lines))
 	for i, line := range lines {
-		chars[i] = splitIntoChars(line)
+		chars[i] = utils.SplitIntoChars(line)
 	}
 
-	return chars
-}
-
-func splitIntoChars(value string) []string {
-	chars := make([]string, 0, len(value))
-	for _, r := range value {
-		chars = append(chars, string(r))
-	}
 	return chars
 }
 
 func findWord(chars [][]string, word string) [][]point {
 	matches := make([][]point, 0)
 
-	wordChars := splitIntoChars(word)
+	wordChars := utils.SplitIntoChars(word)
 	var startPoints []point
 	for y, line := range chars {
 		for x, char := range line {

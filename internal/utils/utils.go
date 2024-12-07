@@ -40,3 +40,11 @@ func Abs(v int) int {
 
 	return v
 }
+
+func SplitIntoChars(value string) []string {
+	chars := make([]string, 0, len(value))
+	for _, r := range value {
+		chars = append(chars, string(r))
+	}
+	return chars
+}
