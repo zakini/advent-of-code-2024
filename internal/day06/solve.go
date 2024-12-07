@@ -2,13 +2,14 @@ package day06
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
 type Node struct {
 	obstacle bool
-	visited  bool
+	visited  []Direction // The direction(s) the guard was facing when they visited this node
 }
 
 type Point struct {
@@ -37,27 +38,56 @@ var nullPosition = OrientatedPosition{Point{-1, -1}, Unknown}
 
 func SolvePart1(input string, debug bool) int {
 	world, guardPosition := parseInput(input)
-	if debug {
-		printWorld(&world, &guardPosition)
-	}
-
-	for pointIsInWorld(&world, guardPosition.position) {
-		simulationStep(&world, &guardPosition)
-		if debug {
-			printWorld(&world, &guardPosition)
-		}
-	}
+	runSimulation(&world, &guardPosition, debug)
 
 	visited := 0
 	for _, row := range world {
 		for _, node := range row {
-			if node.visited {
+			if len(node.visited) > 0 {
 				visited++
 			}
 		}
 	}
 
 	return visited
+}
+
+func SolvePart2(input string, debug bool) int {
+	currentWorld, guardPosition := parseInput(input)
+	initialGuardPosition := OrientatedPosition{Point{guardPosition.position.x, guardPosition.position.y}, guardPosition.direction}
+	runSimulation(&currentWorld, &guardPosition, debug)
+
+	loopingAlternateWorlds := 0
+
+	for y, row := range currentWorld {
+		for x, node := range row {
+			// Ignore guard's initial position (can't place an obstacle here)
+			if initialGuardPosition.position.x == x && initialGuardPosition.position.y == y {
+				continue
+			}
+			// No point trying to place obstacles on nodes that the guard never steps on
+			if len(node.visited) <= 0 {
+				continue
+			}
+
+			if debug {
+				fmt.Printf("Trying obstacle at (%v, %v)\n", x, y)
+			}
+			alternateWorld, alternateGuardPosition := parseInput(input)
+			alternateWorld[y][x].obstacle = true
+			runSimulation(&alternateWorld, &alternateGuardPosition, debug)
+
+			if pointIsInWorld(&alternateWorld, alternateGuardPosition.position) {
+				if debug {
+					fmt.Println("Loop found!")
+				}
+
+				loopingAlternateWorlds++
+			}
+		}
+	}
+
+	return loopingAlternateWorlds
 }
 
 func parseInput(input string) ([][]Node, OrientatedPosition) {
@@ -72,7 +102,7 @@ func parseInput(input string) ([][]Node, OrientatedPosition) {
 		for x, char := range chars {
 			world[y][x] = Node{
 				obstacle: char == "#",
-				visited:  false,
+				visited:  make([]Direction, 0, 4),
 			}
 
 			if char == "^" {
@@ -81,7 +111,7 @@ func parseInput(input string) ([][]Node, OrientatedPosition) {
 					fmt.Sprintf("Found duplicate guard positions: %v | %v", guardPosition, OrientatedPosition{Point{x, y}, Up}),
 				)
 				guardPosition = OrientatedPosition{Point{x, y}, Up}
-				world[y][x].visited = true
+				world[y][x].visited = append(world[y][x].visited, guardPosition.direction)
 			}
 		}
 	}
@@ -91,7 +121,23 @@ func parseInput(input string) ([][]Node, OrientatedPosition) {
 	return world, guardPosition
 }
 
-func simulationStep(world *[][]Node, guardPosition *OrientatedPosition) {
+func runSimulation(world *[][]Node, guardPosition *OrientatedPosition, debug bool) {
+	if debug {
+		printWorld(world, guardPosition)
+	}
+
+	for pointIsInWorld(world, guardPosition.position) {
+		looped := simulationStep(world, guardPosition)
+		if looped {
+			break
+		}
+		if debug {
+			printWorld(world, guardPosition)
+		}
+	}
+}
+
+func simulationStep(world *[][]Node, guardPosition *OrientatedPosition) bool {
 	targetPoint := nullPoint
 
 	switch guardPosition.direction {
@@ -113,7 +159,12 @@ func simulationStep(world *[][]Node, guardPosition *OrientatedPosition) {
 		// Move 1 step forward
 		guardPosition.position = targetPoint
 		if targetIsInWorld {
-			(*world)[targetPoint.y][targetPoint.x].visited = true
+			if slices.Contains((*world)[targetPoint.y][targetPoint.x].visited, guardPosition.direction) {
+				// Guard stepped onto a node they've already visited while facing the same direction
+				// They're hit a loop
+				return true
+			}
+			(*world)[targetPoint.y][targetPoint.x].visited = append((*world)[targetPoint.y][targetPoint.x].visited, guardPosition.direction)
 		}
 	} else {
 		// Rotate right, don't move
@@ -129,7 +180,11 @@ func simulationStep(world *[][]Node, guardPosition *OrientatedPosition) {
 		default:
 			panic(fmt.Sprintf("Invalid guard direction: %v", guardPosition.direction))
 		}
+
+		(*world)[guardPosition.position.y][guardPosition.position.x].visited = append((*world)[guardPosition.position.y][guardPosition.position.x].visited, guardPosition.direction)
 	}
+
+	return false
 }
 
 func pointIsInWorld(world *[][]Node, point Point) bool {
@@ -138,6 +193,35 @@ func pointIsInWorld(world *[][]Node, point Point) bool {
 	}
 
 	return 0 <= point.x && point.x < len((*world)[point.y])
+}
+
+var singleVisitPathDrawingMap = map[Direction]string{
+	Up:    "|",
+	Down:  "|",
+	Left:  "-",
+	Right: "-",
+}
+var doubleVisitPathDrawingMap = map[Direction]map[Direction]string{
+	Up: {
+		Right: "+",
+		Down:  "|",
+		Left:  "+",
+	},
+	Right: {
+		Up:   "+",
+		Down: "+",
+		Left: "-",
+	},
+	Down: {
+		Up:    "|",
+		Right: "+",
+		Left:  "+",
+	},
+	Left: {
+		Up:    "+",
+		Right: "-",
+		Down:  "+",
+	},
 }
 
 func printWorld(world *[][]Node, guardPosition *OrientatedPosition) {
@@ -158,8 +242,17 @@ func printWorld(world *[][]Node, guardPosition *OrientatedPosition) {
 				default:
 					panic(fmt.Sprintf("Invalid guard direction: %v", guardPosition.direction))
 				}
-			} else if node.visited {
-				fmt.Print("X")
+			} else if len(node.visited) > 0 {
+				switch len(node.visited) {
+				case 1:
+					fmt.Print(singleVisitPathDrawingMap[node.visited[0]])
+				case 2:
+					fmt.Print(doubleVisitPathDrawingMap[node.visited[0]][node.visited[1]])
+				case 3, 4:
+					fmt.Print("+")
+				default:
+					panic(fmt.Sprintf("Unexpected number of visit directions for node at (%v, %v): %v", x, y, len(node.visited)))
+				}
 			} else {
 				fmt.Print(".")
 			}
