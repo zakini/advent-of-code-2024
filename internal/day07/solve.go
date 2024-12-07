@@ -12,9 +12,8 @@ const (
 	Invalid Operation = iota
 	Add
 	Multiply
+	Concat
 )
-
-var operations = []Operation{Add, Multiply}
 
 type Calibration struct {
 	target   int
@@ -27,17 +26,27 @@ func (op Operation) String() string {
 		return "+"
 	case Multiply:
 		return "✕"
+	case Concat:
+		return "||"
 	default:
 		return "?"
 	}
 }
 
 func SolvePart1(input string, debug bool) int {
+	return solve(input, []Operation{Add, Multiply}, debug)
+}
+
+func SolvePart2(input string, debug bool) int {
+	return solve(input, []Operation{Add, Multiply, Concat}, debug)
+}
+
+func solve(input string, possibleOperations []Operation, debug bool) int {
 	calibrations := parseInput(input)
 
 	totalCalibrationResult := 0
 	for _, calibration := range calibrations {
-		operationLists := generateOperationLists(len(calibration.operands) - 1)
+		operationLists := generateOperationLists(possibleOperations, len(calibration.operands)-1)
 
 		for _, operationList := range operationLists {
 			result := applyOperationList(calibration.operands, operationList)
@@ -75,7 +84,7 @@ func parseInput(input string) []Calibration {
 	return calibrations
 }
 
-func generateOperationLists(length int) [][]Operation {
+func generateOperationLists(possibleOperations []Operation, length int) [][]Operation {
 	utils.Assert(length >= 0, "Cannot operation lists with a negative length")
 
 	if length == 0 {
@@ -86,12 +95,12 @@ func generateOperationLists(length int) [][]Operation {
 	operationLists := make([][]Operation, 0)
 
 	if length == 1 {
-		for _, op := range operations {
+		for _, op := range possibleOperations {
 			operationLists = append(operationLists, []Operation{op})
 		}
 	} else {
-		for _, op := range operations {
-			subLists := generateOperationLists(length - 1)
+		for _, op := range possibleOperations {
+			subLists := generateOperationLists(possibleOperations, length-1)
 			for i := range subLists {
 				subLists[i] = append(subLists[i], op)
 			}
@@ -121,6 +130,8 @@ func applyOperation(a int, b int, op Operation) int {
 		return a + b
 	case Multiply:
 		return a * b
+	case Concat:
+		return utils.ParseIntAndAssert(fmt.Sprintf("%v%v", a, b))
 	default:
 		panic(fmt.Sprintf("Attempted to apply invalid operation: %v", op))
 	}
