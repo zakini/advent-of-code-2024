@@ -6,7 +6,7 @@ import (
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
-func SolvePart1(input string) int {
+func SolvePart1(input string, debug bool) int {
 	list1, list2 := parseInput(input)
 
 	slices.Sort(list1)
@@ -21,7 +21,7 @@ func SolvePart1(input string) int {
 	return distance
 }
 
-func SolvePart2(input string) int {
+func SolvePart2(input string, debug bool) int {
 	list1, list2 := parseInput(input)
 
 	var similarity int

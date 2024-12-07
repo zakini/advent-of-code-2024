@@ -1,8 +1,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 	"zakini/advent-of-code-2024/internal/day01"
 	"zakini/advent-of-code-2024/internal/day02"
 	"zakini/advent-of-code-2024/internal/day03"
@@ -20,15 +20,17 @@ var solverMap = map[string]map[string]utils.Solver{
 }
 
 func main() {
-	solver, filePath := parseArgs()
+	solver, filePath, debug := parseArgs()
 	fileContents := utils.LoadInputFile(filePath)
-	result := solver(fileContents)
+	result := solver(fileContents, debug)
 
 	fmt.Printf("Result: %d\n", result)
 }
 
-func parseArgs() (utils.Solver, string) {
-	args := os.Args[1:]
+func parseArgs() (utils.Solver, string, bool) {
+	debugFlag := flag.Bool("debug", false, "enable debug mode")
+	flag.Parse()
+	args := flag.Args()
 
 	// TODO show usage message
 	utils.Assert(len(args) >= 3, "Missing required arguments")
@@ -45,5 +47,5 @@ func parseArgs() (utils.Solver, string) {
 	// TODO show valid options for part
 	utils.Assert(partValid, "Invalid part provided")
 
-	return solver, filePath
+	return solver, filePath, *debugFlag
 }

@@ -9,13 +9,13 @@ type point struct {
 	y int
 }
 
-func SolvePart1(input string) int {
+func SolvePart1(input string, debug bool) int {
 	chars := parseInput(input)
 	wordCoords := findWord(chars, "XMAS")
 	return len(wordCoords)
 }
 
-func SolvePart2(input string) int {
+func SolvePart2(input string, debug bool) int {
 	chars := parseInput(input)
 	mases := findWord(chars, "MAS")
 

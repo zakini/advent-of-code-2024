@@ -12,7 +12,7 @@ type pageOrderingRule struct {
 	after  int
 }
 
-func SolvePart1(input string) int {
+func SolvePart1(input string, debug bool) int {
 	rules, pageLists := parseInput(input)
 
 	result := 0
@@ -25,7 +25,7 @@ func SolvePart1(input string) int {
 	return result
 }
 
-func SolvePart2(input string) int {
+func SolvePart2(input string, debug bool) int {
 	rules, pageLists := parseInput(input)
 
 	result := 0

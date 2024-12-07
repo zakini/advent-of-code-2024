@@ -9,7 +9,7 @@ import (
 const minDiff = 1
 const maxDiff = 3
 
-func SolvePart1(input string) int {
+func SolvePart1(input string, debug bool) int {
 	reports := parseInput(input)
 
 	safeCount := 0
@@ -23,7 +23,7 @@ func SolvePart1(input string) int {
 	return safeCount
 }
 
-func SolvePart2(input string) int {
+func SolvePart2(input string, debug bool) int {
 	reports := parseInput(input)
 
 	safeCount := 0

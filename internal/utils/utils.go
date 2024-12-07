@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type Solver func(string) int
+type Solver func(string, bool) int
 
 func LoadInputFile(filePath string) string {
 	fileData, err := os.ReadFile(filePath)

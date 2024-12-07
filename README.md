@@ -4,10 +4,16 @@ https://adventofcode.com/2024
 This year, I'm trying [go](https://go.dev/) (v1.23.3)
 
 ## Setup
-1. Install go
+Just install go
 
 ## Running
-1. Run `go run ./... dayXX partY <path to input file>`
+Run `go run ./... dayXX partY <path to input file>`
+
+### Debugging
+To run with debug messages, run `go run ./... --debug dayXX partY <path to input
+file>`  
+**NOTE** the `--debug` flag _has_ to come before the other arguments, due to
+limitations in the `flag` module
 
 ## Testing
 This project has tests that run the solvers against the example inputs and

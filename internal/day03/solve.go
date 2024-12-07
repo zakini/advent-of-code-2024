@@ -6,7 +6,7 @@ import (
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
-func SolvePart1(input string) int {
+func SolvePart1(input string, debug bool) int {
 	parser := regexp.MustCompile(`mul\((\d{1,3}),(\d{1,3})\)`)
 	matches := parser.FindAllStringSubmatch(input, -1)
 
@@ -23,7 +23,7 @@ func SolvePart1(input string) int {
 	return result
 }
 
-func SolvePart2(input string) int {
+func SolvePart2(input string, debug bool) int {
 	parser := regexp.MustCompile(`(mul)\((\d{1,3}),(\d{1,3})\)|(do)\(\)|(don't)\(\)`)
 	matches := parser.FindAllStringSubmatch(input, -1)
 
