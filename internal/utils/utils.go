@@ -48,3 +48,15 @@ func SplitIntoChars(value string) []string {
 	}
 	return chars
 }
+
+func Filter[T any](arr []T, predicate func(int, T) bool) []T {
+	out := make([]T, 0, len(arr))
+
+	for i, el := range arr {
+		if predicate(i, el) {
+			out = append(out, el)
+		}
+	}
+
+	return out
+}
