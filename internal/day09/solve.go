@@ -10,7 +10,7 @@ import (
 const emptyBlock = -1
 
 func SolvePart1(input string, debug bool) int {
-	blockMap := parseInput(input)
+	blockMap, _ := parseInput(input)
 	if debug {
 		printBlockMap(blockMap)
 	}
@@ -34,35 +34,72 @@ func SolvePart1(input string, debug bool) int {
 		printBlockMap(blockMap)
 	}
 
-	checksum := 0
-	for i, blockId := range blockMap {
-		if blockId == emptyBlock {
-			break
-		}
-
-		checksum += i * blockId
-	}
-
-	return checksum
+	return calculateChecksum(blockMap)
 }
 
-func parseInput(input string) []int {
+func SolvePart2(input string, debug bool) int {
+	blockMap, blockLengthMap := parseInput(input)
+	if debug {
+		printBlockMap(blockMap)
+	}
+
+	for i := len(blockLengthMap) - 1; i >= 0; i-- {
+		targetRunIndex := slices.Index(blockMap, i)
+		targetRunLength := blockLengthMap[i]
+
+		emptyRunIndex := -1
+		maybeEmptyRunIndex := -1
+		emptyRunLength := 0
+		for j, block := range blockMap[:targetRunIndex] {
+			if block != emptyBlock {
+				emptyRunLength = 0
+				maybeEmptyRunIndex = j + 1
+				continue
+			}
+
+			emptyRunLength++
+
+			if emptyRunLength == targetRunLength {
+				emptyRunIndex = maybeEmptyRunIndex
+				break
+			}
+		}
+
+		if emptyRunIndex == -1 {
+			continue
+		}
+
+		for i := 0; i < emptyRunLength; i++ {
+			blockMap[emptyRunIndex+i], blockMap[targetRunIndex+i] = blockMap[targetRunIndex+i], blockMap[emptyRunIndex+i]
+		}
+	}
+
+	if debug {
+		printBlockMap(blockMap)
+	}
+
+	return calculateChecksum(blockMap)
+}
+
+func parseInput(input string) ([]int, []int) {
 	chars := utils.SplitIntoChars(input)
 
 	blockMap := make([]int, 0)
+	blockLengthMap := make([]int, 0)
 	blockId := 0
 	for i, char := range chars {
-		value := utils.ParseIntAndAssert(char)
+		length := utils.ParseIntAndAssert(char)
 
 		if i%2 == 0 {
-			blockMap = append(blockMap, slices.Repeat([]int{blockId}, value)...)
+			blockMap = append(blockMap, slices.Repeat([]int{blockId}, length)...)
+			blockLengthMap = append(blockLengthMap, length)
 			blockId++
 		} else {
-			blockMap = append(blockMap, slices.Repeat([]int{emptyBlock}, value)...)
+			blockMap = append(blockMap, slices.Repeat([]int{emptyBlock}, length)...)
 		}
 	}
 
-	return blockMap
+	return blockMap, blockLengthMap
 }
 
 func lastIndexFunc(s []int, f func(int) bool) int {
@@ -75,6 +112,19 @@ func lastIndexFunc(s []int, f func(int) bool) int {
 	}
 
 	return index
+}
+
+func calculateChecksum(blockMap []int) int {
+	checksum := 0
+	for i, blockId := range blockMap {
+		if blockId == emptyBlock {
+			continue
+		}
+
+		checksum += i * blockId
+	}
+
+	return checksum
 }
 
 func printBlockMap(blockMap []int) {
