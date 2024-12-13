@@ -1,37 +1,56 @@
 package day11
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
-const simulationStepCount = 25
-
 func SolvePart1(input string, debug bool) int {
-	stones := parseInput(input)
-
-	for range simulationStepCount {
-		stones = simulationStep(stones)
-	}
-
-	return len(stones)
+	stoneMap := parseInput(input)
+	return simulate(stoneMap, 25)
 }
 
-func parseInput(input string) []int {
+func SolvePart2(input string, debug bool) int {
+	stoneMap := parseInput(input)
+	return simulate(stoneMap, 75)
+}
+
+func parseInput(input string) map[int]int {
 	stringStones := strings.Fields(input)
 
-	stones := make([]int, len(stringStones))
-	for i, char := range stringStones {
-		stones[i] = utils.ParseIntAndAssert(char)
+	stoneMap := make(map[int]int)
+	for _, char := range stringStones {
+		stone := utils.ParseIntAndAssert(char)
+		stoneMap[stone]++
 	}
 
-	return stones
+	return stoneMap
 }
 
-func simulationStep(stones []int) []int {
-	newStones := make([]int, 0, len(stones))
-	for _, stone := range stones {
+func simulate(stoneMap map[int]int, steps int) int {
+	for range steps {
+		stoneMap = simulationStep(stoneMap)
+		fmt.Print(".")
+	}
+
+	fmt.Println()
+
+	result := 0
+	for _, count := range stoneMap {
+		result += count
+	}
+
+	return result
+}
+
+func simulationStep(stoneMap map[int]int) map[int]int {
+	newStoneMap := make(map[int]int)
+
+	for stone, count := range stoneMap {
+		newStones := make([]int, 0, 2)
+
 		if stone == 0 {
 			newStones = append(newStones, 1)
 		} else if stringStone := strconv.Itoa(stone); len(stringStone)%2 == 0 {
@@ -41,7 +60,11 @@ func simulationStep(stones []int) []int {
 		} else {
 			newStones = append(newStones, stone*2024)
 		}
+
+		for _, stone := range newStones {
+			newStoneMap[stone] += count
+		}
 	}
 
-	return newStones
+	return newStoneMap
 }
