@@ -35,6 +35,19 @@ func SolvePart1(input string, debug bool) int {
 	return result
 }
 
+func SolvePart2(input string, debug bool) int {
+	world, trailStartingPoints := parseInput(input)
+
+	result := 0
+	for _, start := range trailStartingPoints {
+		paths := findPaths(world, []Point{start})
+
+		result += len(paths)
+	}
+
+	return result
+}
+
 func parseInput(input string) ([][]int, []Point) {
 	lines := strings.Split(input, "\n")
 
