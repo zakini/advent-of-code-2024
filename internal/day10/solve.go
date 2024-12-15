@@ -69,7 +69,7 @@ func findPaths(world [][]int, pathSoFar []utils.Vector2) [][]utils.Vector2 {
 	pathHead := pathSoFar[len(pathSoFar)-1]
 
 	paths := make([][]utils.Vector2, 0)
-	for _, point := range surroundingPoints(world, pathHead) {
+	for _, point := range utils.FindSurroundingPoints(world, pathHead) {
 		if world[point.Y][point.X] != world[pathHead.Y][pathHead.X]+1 {
 			continue
 		}
@@ -86,22 +86,4 @@ func findPaths(world [][]int, pathSoFar []utils.Vector2) [][]utils.Vector2 {
 	}
 
 	return paths
-}
-
-func surroundingPoints(world [][]int, centre utils.Vector2) []utils.Vector2 {
-	possiblePoints := [...]utils.Vector2{
-		{X: centre.X - 1, Y: centre.Y},
-		{X: centre.X + 1, Y: centre.Y},
-		{X: centre.X, Y: centre.Y - 1},
-		{X: centre.X, Y: centre.Y + 1},
-	}
-
-	points := make([]utils.Vector2, 0, len(possiblePoints))
-	for _, point := range possiblePoints {
-		if 0 <= point.Y && point.Y < len(world) && 0 <= point.X && point.X < len(world[point.Y]) {
-			points = append(points, point)
-		}
-	}
-
-	return points
 }

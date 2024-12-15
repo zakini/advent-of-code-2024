@@ -60,3 +60,25 @@ func Filter[T any](arr []T, predicate func(int, T) bool) []T {
 
 	return out
 }
+
+func FindSurroundingPoints[T any](world [][]T, centre Vector2) []Vector2 {
+	return FindSurroundingPointsFunc(world, centre, func(_ T) bool { return true })
+}
+
+func FindSurroundingPointsFunc[T any](world [][]T, centre Vector2, predicate func(T) bool) []Vector2 {
+	possiblePoints := [...]Vector2{
+		{centre.X - 1, centre.Y},
+		{centre.X + 1, centre.Y},
+		{centre.X, centre.Y - 1},
+		{centre.X, centre.Y + 1},
+	}
+
+	points := make([]Vector2, 0, len(possiblePoints))
+	for _, point := range possiblePoints {
+		if 0 <= point.Y && point.Y < len(world) && 0 <= point.X && point.X < len(world[point.Y]) && predicate(world[point.Y][point.X]) {
+			points = append(points, point)
+		}
+	}
+
+	return points
+}
