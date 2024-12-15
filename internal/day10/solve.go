@@ -7,11 +7,6 @@ import (
 	"zakini/advent-of-code-2024/internal/utils"
 )
 
-type Point struct {
-	x int
-	y int
-}
-
 const maxPathValue = 9
 
 func SolvePart1(input string, debug bool) int {
@@ -19,9 +14,9 @@ func SolvePart1(input string, debug bool) int {
 
 	result := 0
 	for _, start := range trailStartingPoints {
-		paths := findPaths(world, []Point{start})
+		paths := findPaths(world, []utils.Vector2{start})
 
-		uniqueEndPoints := make([]Point, 0, len(paths))
+		uniqueEndPoints := make([]utils.Vector2, 0, len(paths))
 		for _, path := range paths {
 			endPoint := path[len(path)-1]
 			if !slices.Contains(uniqueEndPoints, endPoint) {
@@ -40,7 +35,7 @@ func SolvePart2(input string, debug bool) int {
 
 	result := 0
 	for _, start := range trailStartingPoints {
-		paths := findPaths(world, []Point{start})
+		paths := findPaths(world, []utils.Vector2{start})
 
 		result += len(paths)
 	}
@@ -48,11 +43,11 @@ func SolvePart2(input string, debug bool) int {
 	return result
 }
 
-func parseInput(input string) ([][]int, []Point) {
+func parseInput(input string) ([][]int, []utils.Vector2) {
 	lines := strings.Split(input, "\n")
 
 	world := make([][]int, len(lines))
-	trailStartingPoints := make([]Point, 0)
+	trailStartingPoints := make([]utils.Vector2, 0)
 	for y, line := range lines {
 		chars := utils.SplitIntoChars(line)
 		world[y] = make([]int, len(chars))
@@ -60,7 +55,7 @@ func parseInput(input string) ([][]int, []Point) {
 		for x, char := range chars {
 			world[y][x] = utils.ParseIntAndAssert(char)
 			if world[y][x] == 0 {
-				trailStartingPoints = append(trailStartingPoints, Point{x, y})
+				trailStartingPoints = append(trailStartingPoints, utils.Vector2{X: x, Y: y})
 			}
 		}
 	}
@@ -68,22 +63,22 @@ func parseInput(input string) ([][]int, []Point) {
 	return world, trailStartingPoints
 }
 
-func findPaths(world [][]int, pathSoFar []Point) [][]Point {
+func findPaths(world [][]int, pathSoFar []utils.Vector2) [][]utils.Vector2 {
 	utils.Assert(len(pathSoFar) <= 10, fmt.Sprintf("Path is too long: %v", pathSoFar))
 
 	pathHead := pathSoFar[len(pathSoFar)-1]
 
-	paths := make([][]Point, 0)
+	paths := make([][]utils.Vector2, 0)
 	for _, point := range surroundingPoints(world, pathHead) {
-		if world[point.y][point.x] != world[pathHead.y][pathHead.x]+1 {
+		if world[point.Y][point.X] != world[pathHead.Y][pathHead.X]+1 {
 			continue
 		}
 
-		path := make([]Point, 0, len(pathSoFar)+1)
+		path := make([]utils.Vector2, 0, len(pathSoFar)+1)
 		path = append(path, pathSoFar...)
 		path = append(path, point)
 
-		if world[point.y][point.x] >= maxPathValue {
+		if world[point.Y][point.X] >= maxPathValue {
 			paths = append(paths, path)
 		} else {
 			paths = append(paths, findPaths(world, path)...)
@@ -93,17 +88,17 @@ func findPaths(world [][]int, pathSoFar []Point) [][]Point {
 	return paths
 }
 
-func surroundingPoints(world [][]int, centre Point) []Point {
-	possiblePoints := [...]Point{
-		{centre.x - 1, centre.y},
-		{centre.x + 1, centre.y},
-		{centre.x, centre.y - 1},
-		{centre.x, centre.y + 1},
+func surroundingPoints(world [][]int, centre utils.Vector2) []utils.Vector2 {
+	possiblePoints := [...]utils.Vector2{
+		{X: centre.X - 1, Y: centre.Y},
+		{X: centre.X + 1, Y: centre.Y},
+		{X: centre.X, Y: centre.Y - 1},
+		{X: centre.X, Y: centre.Y + 1},
 	}
 
-	points := make([]Point, 0, len(possiblePoints))
+	points := make([]utils.Vector2, 0, len(possiblePoints))
 	for _, point := range possiblePoints {
-		if 0 <= point.y && point.y < len(world) && 0 <= point.x && point.x < len(world[point.y]) {
+		if 0 <= point.Y && point.Y < len(world) && 0 <= point.X && point.X < len(world[point.Y]) {
 			points = append(points, point)
 		}
 	}
