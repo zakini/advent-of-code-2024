@@ -3,41 +3,39 @@ package day13
 import (
 	"errors"
 	"fmt"
-	"math"
 	"regexp"
-	"slices"
 	"strings"
 	"zakini/advent-of-code-2024/internal/utils"
 )
-
-type ClawMachine struct {
-	buttonA       utils.Vector2
-	buttonB       utils.Vector2
-	prizePosition utils.Vector2
-}
-
-type Node struct {
-	position utils.Vector2
-	cost     int
-}
 
 const buttonACost = 3
 const buttonBCost = 1
 
 func SolvePart1(input string, debug bool) int {
-	machines := parseInput(input)
+	equationPairs := parseInput(input)
 
 	tokenCost := 0
-	for _, machine := range machines {
-		if tokens, err := solveMachine(machine); err == nil {
+	for _, equationPair := range equationPairs {
+		if debug {
+			fmt.Println(equationPair)
+		}
+
+		if tokens, err := solveEquations(equationPair, debug); err == nil {
+			if debug {
+				fmt.Printf("Token cost: %v\n", tokens)
+			}
 			tokenCost += tokens
+		}
+
+		if debug {
+			fmt.Println()
 		}
 	}
 
 	return tokenCost
 }
 
-func parseInput(input string) []ClawMachine {
+func parseInput(input string) []SimultaneousEquationPair {
 	buttonAMatcher := regexp.MustCompile(`^Button A: X\+(\d+), Y\+(\d+)$`)
 	buttonBMatcher := regexp.MustCompile(`^Button B: X\+(\d+), Y\+(\d+)$`)
 	prizeMatcher := regexp.MustCompile(`^Prize: X=(\d+), Y=(\d+)$`)
@@ -50,7 +48,7 @@ func parseInput(input string) []ClawMachine {
 	// Re-add a blank line so that we don't have to handle the last claw machine
 	// as a special case
 	lines = append(lines, "")
-	machines := make([]ClawMachine, 0, (len(lines)+1)/4)
+	equations := make([]SimultaneousEquationPair, 0, len(lines)/4)
 	for _, line := range lines {
 		if matches := buttonAMatcher.FindStringSubmatch(line); matches != nil {
 			buttonA.X = utils.ParseIntAndAssert(matches[1])
@@ -69,68 +67,163 @@ func parseInput(input string) []ClawMachine {
 				"Claw machine is missing some elements",
 			)
 
-			machines = append(
-				machines,
-				ClawMachine{buttonA, buttonB, prizePosition},
+			equations = append(
+				equations,
+				SimultaneousEquationPair{
+					equationA: Equation{
+						lhs: map[Unknown]int{
+							UnknownA: buttonA.X,
+							UnknownB: buttonB.X,
+						},
+						rhs: map[Unknown]int{
+							Scalar: prizePosition.X,
+						},
+					},
+					equationB: Equation{
+						lhs: map[Unknown]int{
+							UnknownA: buttonA.Y,
+							UnknownB: buttonB.Y,
+						},
+						rhs: map[Unknown]int{
+							Scalar: prizePosition.Y,
+						},
+					},
+				},
 			)
 		} else {
 			panic(fmt.Sprintf("Failed to parse line: %v", line))
 		}
 	}
 
-	return machines
+	return equations
 }
 
-func solveMachine(machine ClawMachine) (int, error) {
-	frontier := []Node{
-		{position: utils.Vector2{X: 0, Y: 0}, cost: 0},
+func solveEquations(equationPair SimultaneousEquationPair, debug bool) (int, error) {
+	// multiply equation A by the coefficient of equation B's b term and vice versa
+	bCoefficientInA, err := equationPair.equationA.findCoefficient(UnknownB)
+	utils.AssertNoError(err)
+	bCoefficientInB, err := equationPair.equationB.findCoefficient(UnknownB)
+	utils.AssertNoError(err)
+
+	rearrangePairForB := SimultaneousEquationPair{
+		equationA: equationPair.equationA.multiply(bCoefficientInB),
+		equationB: equationPair.equationB.multiply(bCoefficientInA),
 	}
 
-	bestTokenCost := math.MaxInt
-	checks := 0
-	const maxChecks = 1_000_000
-	for len(frontier) > 0 {
-		var current Node
-		current, frontier = frontier[0], frontier[1:]
+	if debug {
+		fmt.Println(rearrangePairForB)
+	}
 
-		checks++
-		utils.Assert(checks <= maxChecks, "Reached max checks")
+	// rearrange both in terms of b
+	rearrangedA, err := rearrangePairForB.equationA.rearrangeInTermsOf(UnknownB)
+	utils.AssertNoError(err)
+	rearrangedB, err := rearrangePairForB.equationB.rearrangeInTermsOf(UnknownB)
+	utils.AssertNoError(err)
 
-		if current.position.X > machine.prizePosition.X ||
-			current.position.Y > machine.prizePosition.Y {
-			// Buttons always increase X and Y, so if we ever go past either
-			// coordinate of the prize position, we're never coming back, so we
-			// can ignore this node
-			continue
+	rearrangePairForB = SimultaneousEquationPair{
+		equationA: rearrangedA,
+		equationB: rearrangedB,
+	}
+
+	if debug {
+		fmt.Println(rearrangePairForB)
+	}
+
+	// make them equal each other
+	aSideWithoutB, err := rearrangePairForB.equationA.eliminate(UnknownB)
+	utils.AssertNoError(err)
+	bSideWithoutB, err := rearrangePairForB.equationB.eliminate(UnknownB)
+	utils.AssertNoError(err)
+
+	aOnlyEquation := Equation{
+		lhs: aSideWithoutB,
+		rhs: bSideWithoutB,
+	}
+
+	if debug {
+		fmt.Println(aOnlyEquation)
+	}
+
+	// rearrange in terms of a
+	aOnlyEquation, err = aOnlyEquation.rearrangeInTermsOf(UnknownA)
+	utils.AssertNoError(err)
+
+	if debug {
+		fmt.Println(aOnlyEquation)
+	}
+
+	// reduce to 1a
+	aValue, err := aOnlyEquation.evaluate(UnknownA)
+	err = handleEvaluationError(err, debug, "a does not have an integer value")
+	if err != nil {
+		return -1, err
+	}
+
+	if debug {
+		fmt.Printf("a = %v\n", aValue)
+	}
+
+	// plug a into original equations
+	substitutedA := SimultaneousEquationPair{
+		equationA: equationPair.equationA.substitute(UnknownA, aValue),
+		equationB: equationPair.equationB.substitute(UnknownA, aValue),
+	}
+
+	if debug {
+		fmt.Println(substitutedA)
+	}
+
+	// rearrange both in terms of b
+	rearrangedA, err = substitutedA.equationA.rearrangeInTermsOf(UnknownB)
+	utils.AssertNoError(err)
+	rearrangedB, err = substitutedA.equationB.rearrangeInTermsOf(UnknownB)
+	utils.AssertNoError(err)
+
+	rearrangePairForB = SimultaneousEquationPair{
+		equationA: rearrangedA,
+		equationB: rearrangedB,
+	}
+
+	if debug {
+		fmt.Println(rearrangePairForB)
+	}
+
+	// reduce to 1b
+	bValueFromA, err := rearrangePairForB.equationA.evaluate(UnknownB)
+	err = handleEvaluationError(err, debug, "b does not have an integer value")
+	if err != nil {
+		return -1, err
+	}
+	bValueFromB, err := rearrangePairForB.equationB.evaluate(UnknownB)
+	err = handleEvaluationError(err, debug, "b does not have an integer value")
+	if err != nil {
+		return -1, err
+	}
+
+	// if both bs are not the same, panic
+	utils.Assert(bValueFromA == bValueFromB, "Equations have different values for B")
+	bValue := bValueFromA
+
+	if debug {
+		fmt.Printf("b = %v\n", bValue)
+	}
+
+	// calculate token cost and return
+	return (aValue * buttonACost) + (bValue * buttonBCost), nil
+}
+
+func handleEvaluationError(err error, debug bool, debugMessage string) error {
+	if err == nil {
+		return nil
+	}
+
+	var nie NonIntegerError
+	if errors.As(err, &nie) {
+		if debug {
+			fmt.Println(debugMessage)
 		}
-
-		if current.position.X == machine.prizePosition.X &&
-			current.position.Y == machine.prizePosition.Y &&
-			current.cost < bestTokenCost {
-			// Found a better route to the prize
-			bestTokenCost = current.cost
-		} else {
-			buttonANeighbour := Node{
-				position: current.position.Add(machine.buttonA),
-				cost:     current.cost + buttonACost,
-			}
-			if !slices.Contains(frontier, buttonANeighbour) {
-				frontier = append(frontier, buttonANeighbour)
-			}
-
-			buttonBNeighbour := Node{
-				position: current.position.Add(machine.buttonB),
-				cost:     current.cost + buttonBCost,
-			}
-			if !slices.Contains(frontier, buttonBNeighbour) {
-				frontier = append(frontier, buttonBNeighbour)
-			}
-		}
+		return errors.New("equations do not have an integer solution")
+	} else {
+		panic(err.Error())
 	}
-
-	if bestTokenCost == math.MaxInt {
-		return -1, errors.New("machine is unsolvable")
-	}
-
-	return bestTokenCost, nil
 }

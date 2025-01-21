@@ -11,7 +11,7 @@ type Solver func(string, bool) int
 
 func LoadInputFile(filePath string) string {
 	fileData, err := os.ReadFile(filePath)
-	AssertNoError(err, fmt.Sprintf("Could not read input file: %s", filePath))
+	AssertNoErrorWithMessage(err, fmt.Sprintf("Could not read input file: %s", filePath))
 
 	return strings.TrimSpace(string(fileData))
 }
@@ -22,13 +22,19 @@ func Assert(condition bool, message string) {
 	}
 }
 
-func AssertNoError(err error, message string) {
+func AssertNoError(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func AssertNoErrorWithMessage(err error, message string) {
 	Assert(err == nil, message)
 }
 
 func ParseIntAndAssert(str string) int {
 	num, err := strconv.Atoi(str)
-	AssertNoError(err, fmt.Sprintf("Failed to parse number %s", str))
+	AssertNoErrorWithMessage(err, fmt.Sprintf("Failed to parse number %s", str))
 	return num
 }
 
