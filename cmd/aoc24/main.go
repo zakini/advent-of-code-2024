@@ -32,7 +32,7 @@ var solverMap = map[string]map[string]utils.Solver{
 	"day10": {"part1": day10.SolvePart1, "part2": day10.SolvePart2},
 	"day11": {"part1": day11.SolvePart1, "part2": day11.SolvePart2},
 	"day12": {"part1": day12.SolvePart1},
-	"day13": {"part1": day13.SolvePart1},
+	"day13": {"part1": day13.SolvePart1, "part2": day13.SolvePart2},
 }
 
 func main() {

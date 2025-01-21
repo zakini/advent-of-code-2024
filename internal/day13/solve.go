@@ -12,7 +12,15 @@ const buttonACost = 3
 const buttonBCost = 1
 
 func SolvePart1(input string, debug bool) int {
-	equationPairs := parseInput(input)
+	return solve(input, debug, 0)
+}
+
+func SolvePart2(input string, debug bool) int {
+	return solve(input, debug, 10000000000000)
+}
+
+func solve(input string, debug bool, prizePositionOffset int) int {
+	equationPairs := parseInput(input, prizePositionOffset)
 
 	tokenCost := 0
 	for _, equationPair := range equationPairs {
@@ -35,7 +43,7 @@ func SolvePart1(input string, debug bool) int {
 	return tokenCost
 }
 
-func parseInput(input string) []SimultaneousEquationPair {
+func parseInput(input string, prizePositionOffset int) []SimultaneousEquationPair {
 	buttonAMatcher := regexp.MustCompile(`^Button A: X\+(\d+), Y\+(\d+)$`)
 	buttonBMatcher := regexp.MustCompile(`^Button B: X\+(\d+), Y\+(\d+)$`)
 	prizeMatcher := regexp.MustCompile(`^Prize: X=(\d+), Y=(\d+)$`)
@@ -57,8 +65,8 @@ func parseInput(input string) []SimultaneousEquationPair {
 			buttonB.X = utils.ParseIntAndAssert(matches[1])
 			buttonB.Y = utils.ParseIntAndAssert(matches[2])
 		} else if matches := prizeMatcher.FindStringSubmatch(line); matches != nil {
-			prizePosition.X = utils.ParseIntAndAssert(matches[1])
-			prizePosition.Y = utils.ParseIntAndAssert(matches[2])
+			prizePosition.X = utils.ParseIntAndAssert(matches[1]) + prizePositionOffset
+			prizePosition.Y = utils.ParseIntAndAssert(matches[2]) + prizePositionOffset
 		} else if line == "" {
 			utils.Assert(
 				buttonA != (utils.Vector2{}) &&
